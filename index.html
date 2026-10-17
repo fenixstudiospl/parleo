@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parleo.pl -  Darmowa Nauka Języka Angielskiego</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://imgur.com/HD1VJqb.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        limebrand: {
+                            50: '#f7fee7',
+                            100: '#ecfccb',
+                            200: '#d9f99d',
+                            300: '#bef264',
+                            400: '#a3e635', // Main Juicy Lime (matching logo)
+                            500: '#84cc16',
+                            600: '#65a30d',
+                            700: '#4d7c0f',
+                            800: '#3f6212',
+                            900: '#365314',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons & Canvas Confetti -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Perspective for 3D Flashcard flip */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a3e635;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #84cc16;
+        }
+
+        /* Floating background blobs animation */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(-20px) rotate(6deg) scale(1.05); }
+        }
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(20px) rotate(-6deg) scale(0.95); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        .animate-float-slow {
+            animation: float-slow 7s ease-in-out infinite;
+        }
+        .animate-float-reverse {
+            animation: float-reverse 9s ease-in-out infinite;
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+
+        /* Shimmer overlay effect for action buttons */
+        .shimmer-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-btn::after {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.35) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 3s infinite;
+            content: '';
+        }
+
+        /* Glowing lime card border on hover */
+        .hover-lime-glow {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hover-lime-glow:hover {
+            box-shadow: 0 10px 30px -5px rgba(163, 230, 53, 0.4);
+            transform: translateY(-4px);
+        }
+
+        /* Floating badge animation */
+        @keyframes badge-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-badge-bounce {
+            animation: badge-bounce 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-800 antialiased flex flex-col min-h-screen selection:bg-limebrand-300 selection:text-slate-900">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-slate-900 via-limebrand-950 to-slate-900 text-white text-xs sm:text-sm py-2.5 px-4 text-center font-medium shadow-sm flex items-center justify-center gap-2 relative z-50">
+        <span class="bg-limebrand-400 text-slate-950 text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm animate-pulse">100% Gratis</span>
+        <span>Parleo.pl jest w pełni darmową platformą dla wszystkich szkół, nauczycieli i uczniów!</span>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <img src="https://imgur.com/HD1VJqb.png" alt="Parleo.pl Logo" class="h-10 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" onerror="this.onerror=null; this.src='https://placehold.co/120x40/a3e635/000000?text=Parleo.pl';">
+                    <span class="text-2xl font-black tracking-tight text-slate-900 group-hover:text-limebrand-600 transition-colors">
+                        Parleo<span class="text-limebrand-400">.pl</span>
+                    </span>
+                </a>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600">
+                    <a href="#funkcje" class="hover:text-limebrand-600 transition-colors hover:scale-105 inline-block">Funkcje</a>
+                    <a href="#nauczyciele" class="hover:text-limebrand-600 transition-colors hover:scale-105 inline-block">Dla Nauczycieli</a>
+                    <a href="#uczniowie" class="hover:text-limebrand-600 transition-colors hover:scale-105 inline-block">Dla Uczniów</a>
+                    <a href="#demo" class="hover:text-limebrand-600 transition-colors flex items-center gap-1.5 text-limebrand-600 font-bold hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-gamepad text-limebrand-500"></i> Demo Fiszek & Quiz
+                    </a>
+                </nav>
+
+                <!-- Action Button -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="https://parleo.pl/login" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 hover:scale-105">
+                        <i class="fa-solid fa-right-to-bracket mr-2 text-limebrand-600"></i> Zaloguj się
+                    </a>
+                    <a href="https://parleo.pl/login" class="shimmer-btn inline-flex items-center justify-center px-6 py-2.5 text-sm font-extrabold text-slate-950 bg-limebrand-400 hover:bg-limebrand-300 rounded-xl shadow-lg shadow-limebrand-400/30 hover:shadow-limebrand-400/50 hover:scale-105 transition-all duration-200">
+                        Wypróbuj teraz
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
+            <a href="#funkcje" class="block py-2 text-base font-medium text-slate-700 hover:text-limebrand-600">Funkcje</a>
+            <a href="#nauczyciele" class="block py-2 text-base font-medium text-slate-700 hover:text-limebrand-600">Dla Nauczycieli</a>
+            <a href="#uczniowie" class="block py-2 text-base font-medium text-slate-700 hover:text-limebrand-600">Dla Uczniów</a>
+            <a href="#demo" class="block py-2 text-base font-bold text-limebrand-600">Interaktywne Demo</a>
+            <div class="pt-2 flex flex-col gap-2">
+                <a href="https://parleo.pl/login" class="w-full text-center py-2.5 font-bold text-slate-900 bg-limebrand-400 rounded-xl shadow">Zaloguj się / Rejestracja</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow">
+
+        <!-- Hero Section -->
+        <section class="relative overflow-hidden bg-gradient-to-b from-limebrand-50/50 via-white to-slate-50 py-16 lg:py-28">
+            
+            <!-- Animated Background Blobs -->
+            <div class="absolute top-10 left-10 w-72 h-72 bg-limebrand-200/60 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-limebrand-300/40 rounded-full blur-3xl animate-float-reverse pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <!-- Left Hero Text -->
+                    <div class="lg:col-span-7 text-center lg:text-left">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-limebrand-100/90 border border-limebrand-300/80 text-limebrand-900 text-xs sm:text-sm font-bold mb-6 shadow-sm animate-badge-bounce">
+                            <i class="fa-solid fa-sparkles text-limebrand-600"></i>
+                            Innowacyjna platforma językowa dla szkół
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+                            Nowoczesna nauka <br class="hidden sm:inline">języka angielskiego <br>
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-limebrand-500 via-limebrand-400 to-emerald-600">dla szkół i uczniów</span>
+                        </h1>
+                        <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
+                            Twórz własne zestawy słówek, korzystaj z interaktywnych fiszek oraz automatycznego systemu oceniania dla klas. Wszystko w jednym, 100% darmowym miejscu!
+                        </p>
+
+                        <!-- CTA Buttons -->
+                        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                            <a href="https://parleo.pl/login" class="shimmer-btn px-8 py-4 bg-limebrand-400 hover:bg-limebrand-300 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-limebrand-400/30 hover:shadow-2xl hover:shadow-limebrand-400/50 hover:-translate-y-1 transition-all text-center flex items-center justify-center gap-2 text-base">
+                                Rozpocznij za darmo <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                            <a href="#demo" class="px-8 py-4 bg-white hover:bg-slate-50 text-slate-800 font-bold rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2 text-base">
+                                <i class="fa-solid fa-play text-limebrand-500"></i> Wypróbuj Demo Fiszek
+                            </a>
+                        </div>
+
+                        <!-- Trust Badges -->
+                        <div class="mt-10 pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-slate-600 text-xs sm:text-sm font-semibold">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-limebrand-500 text-lg"></i> Bez ukrytych opłat
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-limebrand-500 text-lg"></i> Baza tysięcy słówek
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-limebrand-500 text-lg"></i> Gotowe do użycia w klasie
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Hero Interactive Visual Card -->
+                    <div class="lg:col-span-5">
+                        <div class="relative mx-auto max-w-md">
+                            <!-- Background Glow Effect -->
+                            <div class="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-limebrand-400 to-emerald-400 opacity-40 blur-xl animate-pulse-glow"></div>
+                            
+                            <!-- Card Container -->
+                            <div class="relative bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border border-slate-100 hover-lime-glow">
+                                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-11 h-11 rounded-xl bg-limebrand-400 text-slate-950 flex items-center justify-center font-black text-lg shadow-sm">
+                                            A1
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 text-sm">Owocowy Zestaw Słówek</h3>
+                                            <p class="text-xs text-slate-400">Lekcja 3 • 15 słówek</p>
+                                        </div>
+                                    </div>
+                                    <span class="bg-limebrand-100 text-limebrand-900 text-xs font-black px-3 py-1 rounded-full border border-limebrand-300">
+                                        95% Opanowane
+                                    </span>
+                                </div>
+
+                                <!-- Mini Flashcard Visual -->
+                                <div class="my-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-limebrand-950 text-white text-center shadow-lg relative overflow-hidden group cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
+                                    <div class="absolute top-3 right-3 text-limebrand-400/80"><i class="fa-solid fa-volume-high"></i></div>
+                                    <span class="text-[11px] uppercase tracking-widest text-limebrand-300 font-bold">Słówko tygodnia</span>
+                                    <h4 class="text-3xl font-black mt-1 text-white tracking-wide">Apple</h4>
+                                    <p class="text-xs text-limebrand-300 mt-1 font-semibold">/ˈæp.əl/ • Jabłko</p>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-xs font-bold text-slate-700">
+                                        <span>Proponowana Ocena:</span>
+                                        <span class="text-limebrand-600 font-black">6 (Celujący)</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                                        <div class="bg-gradient-to-r from-limebrand-400 to-limebrand-500 h-full rounded-full w-[95%] transition-all duration-1000 shadow"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Ranking Pill -->
+                                <div class="mt-6 p-3.5 bg-limebrand-50/60 rounded-2xl flex items-center justify-between border border-limebrand-200">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl animate-bounce">🏆</span>
+                                        <div>
+                                            <p class="text-xs font-extrabold text-slate-900">1. miejsce w klasie 6B</p>
+                                            <p class="text-[11px] text-slate-500 font-semibold">Passa: 🔥 12 dni z rzędu</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-black text-slate-950 bg-limebrand-400 px-3 py-1.5 rounded-xl shadow-sm">1420 pkt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Grid Section -->
+        <section id="funkcje" class="py-20 bg-white relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="px-3.5 py-1 rounded-full bg-limebrand-100 text-limebrand-900 text-xs font-extrabold uppercase tracking-widest border border-limebrand-300">
+                        Dlaczego Parleo.pl?
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3">Wszystko, czego potrzebujesz do nauki języka w jednym miejscu</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover-lime-glow transition-all group">
+                        <div class="w-14 h-14 rounded-2xl bg-limebrand-400 text-slate-950 flex items-center justify-center text-2xl font-bold shadow-lg shadow-limebrand-400/30 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mt-6">Automatyczny System Ocen</h3>
+                        <p class="text-slate-600 mt-3 text-sm leading-relaxed">
+                            Nauczyciel nie musi tracić czasu na sprawdzanie testów. System automatycznie wylicza procent zapamiętanych słówek i proponuje odpowiednią ocenę szkolną.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover-lime-glow transition-all group">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-900 text-limebrand-400 flex items-center justify-center text-2xl font-bold shadow-lg shadow-slate-900/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mt-6">Grywalizacja i Rankingi</h3>
+                        <p class="text-slate-600 mt-3 text-sm leading-relaxed">
+                            Motywuj uczniów poprzez zdobycze punktowe, odznaki, liczniki dni nauki (streak) oraz zdrową rywalizację w rankingu klasy i całej szkoły.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover-lime-glow transition-all group">
+                        <div class="w-14 h-14 rounded-2xl bg-limebrand-400 text-slate-950 flex items-center justify-center text-2xl font-bold shadow-lg shadow-limebrand-400/30 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mt-6">Własne Bazy Słówek</h3>
+                        <p class="text-slate-600 mt-3 text-sm leading-relaxed">
+                            Zarówno nauczyciele, jak i uczniowie mogą błyskawicznie dodawać własne słowa, grupy tematyczne oraz dostosowane fiszki do dowolnego materiału.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Teacher Section: Automatic Grading System -->
+        <section id="nauczyciele" class="py-20 bg-slate-950 text-white relative overflow-hidden">
+            <!-- Background Orbs -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-limebrand-400/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="max-w-3xl mx-auto text-center mb-16">
+                    <span class="px-4 py-1.5 rounded-full bg-limebrand-400/20 text-limebrand-300 text-xs font-black uppercase tracking-widest border border-limebrand-400/30">
+                        Strefa Nauczyciela
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-black mt-4">Automatyczne Ocenianie Uczniów</h2>
+                    <p class="text-slate-400 mt-4 text-base sm:text-lg">
+                        System Parleo samoczynnie przelicza poziom opanowania materiału na propozycję stopni wg poniższej skali:
+                    </p>
+                </div>
+
+                <!-- Grading Scale Cards Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+                    
+                    <!-- Grade 6 -->
+                    <div class="bg-slate-900 border border-limebrand-400/50 p-5 rounded-2xl text-center hover:scale-105 hover:border-limebrand-400 transition-all duration-300 shadow-lg shadow-limebrand-400/10">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-limebrand-400 text-slate-950 font-black text-2xl flex items-center justify-center mb-3 shadow">
+                            6
+                        </div>
+                        <h4 class="font-extrabold text-white text-sm">Celujący</h4>
+                        <div class="mt-2 text-xs font-black text-slate-950 bg-limebrand-400 py-1 px-2 rounded-lg">
+                            90% i więcej
+                        </div>
+                    </div>
+
+                    <!-- Grade 5 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center hover:scale-105 hover:border-slate-700 transition-all duration-300">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-limebrand-300/20 text-limebrand-300 font-black text-2xl flex items-center justify-center mb-3">
+                            5
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Bardzo dobry</h4>
+                        <div class="mt-2 text-xs font-bold text-limebrand-300 bg-slate-950 py-1 rounded-lg">
+                            75% - 89%
+                        </div>
+                    </div>
+
+                    <!-- Grade 4 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center hover:scale-105 hover:border-slate-700 transition-all duration-300">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-sky-500/20 text-sky-400 font-black text-2xl flex items-center justify-center mb-3">
+                            4
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Dobry</h4>
+                        <div class="mt-2 text-xs font-bold text-sky-300 bg-slate-950 py-1 rounded-lg">
+                            60% - 74%
+                        </div>
+                    </div>
+
+                    <!-- Grade 3 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center hover:scale-105 hover:border-slate-700 transition-all duration-300">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-amber-500/20 text-amber-400 font-black text-2xl flex items-center justify-center mb-3">
+                            3
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Dostateczny</h4>
+                        <div class="mt-2 text-xs font-bold text-amber-300 bg-slate-950 py-1 rounded-lg">
+                            40% - 59%
+                        </div>
+                    </div>
+
+                    <!-- Grade 2 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center hover:scale-105 hover:border-slate-700 transition-all duration-300">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-orange-500/20 text-orange-400 font-black text-2xl flex items-center justify-center mb-3">
+                            2
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Dopuszczający</h4>
+                        <div class="mt-2 text-xs font-bold text-orange-300 bg-slate-950 py-1 rounded-lg">
+                            15% - 39%
+                        </div>
+                    </div>
+
+                    <!-- Grade 1 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center hover:scale-105 hover:border-slate-700 transition-all duration-300">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 text-rose-400 font-black text-2xl flex items-center justify-center mb-3">
+                            1
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Niedostateczny</h4>
+                        <div class="mt-2 text-xs font-bold text-rose-300 bg-slate-950 py-1 rounded-lg">
+                            0% - 14%
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Teacher Features List -->
+                <div class="mt-16 bg-slate-900/80 rounded-3xl p-8 border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
+                    <div class="flex items-start gap-4">
+                        <div class="text-limebrand-400 text-2xl"><i class="fa-solid fa-folder-plus"></i></div>
+                        <div>
+                            <h5 class="font-bold text-white text-base">Własne Słowniki</h5>
+                            <p class="text-slate-400 text-xs mt-1">Twórz zestawy idealnie dopasowane do podręcznika szkolnego.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="text-limebrand-400 text-2xl"><i class="fa-solid fa-chart-line"></i></div>
+                        <div>
+                            <h5 class="font-bold text-white text-base">Eksport Raportów</h5>
+                            <p class="text-slate-400 text-xs mt-1">Pobieraj gotowe podsumowania wyników dla całej klasy jednym kliknięciem.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="text-limebrand-400 text-2xl"><i class="fa-solid fa-user-shield"></i></div>
+                        <div>
+                            <h5 class="font-bold text-white text-base">Konta Szkoła/Klasa</h5>
+                            <p class="text-slate-400 text-xs mt-1">Łatwe udostępnianie kodów dołączenia bez skomplikowanych haseł.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Student Zone & Leaderboard Section -->
+        <section id="uczniowie" class="py-20 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <!-- Left: Leaderboard Preview -->
+                    <div class="lg:col-span-6 order-2 lg:order-1">
+                        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-8 hover-lime-glow">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 class="text-xl font-black text-slate-900">Ranking Klasy 6B</h3>
+                                    <p class="text-xs text-slate-400 font-medium">Ostatnia aktualizacja: Dzisiaj</p>
+                                </div>
+                                <span class="bg-limebrand-100 text-slate-950 text-xs font-black px-3 py-1.5 rounded-full border border-limebrand-300">
+                                    <i class="fa-solid fa-fire text-amber-500 mr-1"></i> Sezon Tygodniowy
+                                </span>
+                            </div>
+
+                            <!-- Leaderboard Items -->
+                            <div class="space-y-3">
+                                <!-- 1st Place -->
+                                <div class="flex items-center justify-between p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl transition-transform hover:scale-[1.01]">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🥇</span>
+                                        <div class="w-10 h-10 rounded-full bg-amber-300 text-amber-950 font-black flex items-center justify-center text-sm shadow-sm">
+                                            AM
+                                        </div>
+                                        <div>
+                                            <p class="font-extrabold text-slate-900 text-sm">Ania Kowalska</p>
+                                            <p class="text-[11px] text-amber-800 font-bold">Passa: 14 dni z rzędu 🔥</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-black text-amber-900 text-sm bg-amber-200/80 px-3 py-1 rounded-xl">2,450 pkt</span>
+                                </div>
+
+                                <!-- 2nd Place -->
+                                <div class="flex items-center justify-between p-3.5 bg-slate-100/80 border border-slate-200 rounded-2xl transition-transform hover:scale-[1.01]">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🥈</span>
+                                        <div class="w-10 h-10 rounded-full bg-slate-300 text-slate-800 font-black flex items-center justify-center text-sm shadow-sm">
+                                            PK
+                                        </div>
+                                        <div>
+                                            <p class="font-extrabold text-slate-900 text-sm">Piotr Nowak</p>
+                                            <p class="text-[11px] text-slate-500 font-medium">Passa: 8 dni z rzędu 🔥</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 text-sm bg-slate-200 px-3 py-1 rounded-xl">2,100 pkt</span>
+                                </div>
+
+                                <!-- 3rd Place -->
+                                <div class="flex items-center justify-between p-3.5 bg-orange-50/60 border border-orange-200/60 rounded-2xl transition-transform hover:scale-[1.01]">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🥉</span>
+                                        <div class="w-10 h-10 rounded-full bg-orange-200 text-orange-900 font-black flex items-center justify-center text-sm shadow-sm">
+                                            KW
+                                        </div>
+                                        <div>
+                                            <p class="font-extrabold text-slate-900 text-sm">Kasia Wiszniewska</p>
+                                            <p class="text-[11px] text-orange-800 font-medium">Passa: 5 dni z rzędu 🔥</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-extrabold text-orange-950 text-sm bg-orange-200/60 px-3 py-1 rounded-xl">1,890 pkt</span>
+                                </div>
+
+                                <!-- 4th Place (You) -->
+                                <div class="flex items-center justify-between p-3.5 bg-limebrand-50 border-2 border-limebrand-400 rounded-2xl shadow-md">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-black text-slate-600 text-sm w-6 text-center">4.</span>
+                                        <div class="w-10 h-10 rounded-full bg-limebrand-400 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+                                            TY
+                                        </div>
+                                        <div>
+                                            <p class="font-black text-slate-900 text-sm">Ty (Konto Demo)</p>
+                                            <p class="text-[11px] text-limebrand-800 font-bold">Tylko 150 pkt do podium!</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-black text-slate-950 bg-limebrand-400 px-3 py-1 rounded-xl shadow-sm text-sm">1,740 pkt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Text: Student Features -->
+                    <div class="lg:col-span-6 order-1 lg:order-2">
+                        <span class="text-xs uppercase font-black tracking-widest text-limebrand-600 bg-limebrand-100 px-3 py-1 rounded-full border border-limebrand-300">
+                            Strefa Ucznia
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-4">
+                            Ucz się szybko, zbieraj punkty i dodawaj własne słówka!
+                        </h2>
+                        <p class="text-slate-600 mt-4 leading-relaxed font-medium">
+                            Parleo.pl to nie tylko zadania domowe od nauczyciela. Możesz tworzyć swoje osobiste zestawy słówek do sprawdzianów lub do własnych celów (np. gry, filmy, wakacje).
+                        </p>
+
+                        <div class="mt-8 space-y-4">
+                            <div class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover-lime-glow">
+                                <div class="w-11 h-11 rounded-xl bg-limebrand-400 text-slate-950 flex items-center justify-center text-xl font-black shadow-sm">
+                                    <i class="fa-solid fa-plus"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Tworzenie Własnych Fiszki</h4>
+                                    <p class="text-xs text-slate-500">Szybkie dodawanie par angielsko-polskich.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover-lime-glow">
+                                <div class="w-11 h-11 rounded-xl bg-slate-900 text-limebrand-400 flex items-center justify-center text-xl font-black shadow-sm">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Passa Nauki (Streak)</h4>
+                                    <p class="text-xs text-slate-500">Utrzymuj ciągłość codzienne i zdobywaj powiększone mnożniki punktowe.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo Section (Flashcards & Quiz) -->
+        <section id="demo" class="py-20 bg-white relative">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                    <span class="px-3.5 py-1.5 rounded-full bg-limebrand-100 text-limebrand-950 text-xs font-black uppercase tracking-widest border border-limebrand-300">
+                        Przetestuj bez logowania
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3">Interaktywne Demo (Poziom A1)</h2>
+                    <p class="text-slate-500 text-sm mt-2 font-medium">Wybierz tryb nauki i sprawdź, jak działa nasza platforma</p>
+                </div>
+
+                <!-- Mode Switcher Tabs -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-2 border border-slate-200 shadow-inner">
+                        <button id="tab-flashcards" onclick="switchDemoMode('flashcards')" class="px-6 py-2.5 rounded-xl text-sm font-black transition-all bg-limebrand-400 text-slate-950 shadow-md">
+                            <i class="fa-solid fa-clone mr-2"></i> Tryb 1: Fiszki 3D
+                        </button>
+                        <button id="tab-quiz" onclick="switchDemoMode('quiz')" class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-list-check mr-2 text-limebrand-600"></i> Tryb 2: Szybki Quiz (4 pytania)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DEMO MODE 1: FLASHCARDS -->
+                <div id="demo-flashcards-view" class="space-y-6">
+                    <div class="text-center text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">
+                        Kliknij kartę, aby obrócić i zobaczyć tłumaczenie
+                    </div>
+
+                    <!-- 3D Card Container -->
+                    <div class="perspective-1000 w-full max-w-md mx-auto h-72">
+                        <div id="flashcard" onclick="flipCard()" class="relative w-full h-full duration-500 transform-style-3d cursor-pointer shadow-2xl rounded-3xl border-2 border-slate-100 hover:border-limebrand-300 bg-white">
+                            
+                            <!-- Front (EN) -->
+                            <div class="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden bg-gradient-to-br from-white via-slate-50 to-limebrand-50/30">
+                                <div class="w-full flex justify-between items-center text-xs text-slate-400 font-bold uppercase">
+                                    <span class="bg-slate-100 px-2.5 py-1 rounded-md text-slate-600">Język Angielski</span>
+                                    <button onclick="speakWord(event)" class="text-slate-500 hover:text-limebrand-600 p-2 rounded-lg hover:bg-limebrand-100 transition-colors" title="Odtwórz wymowę">
+                                        <i class="fa-solid fa-volume-high text-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="text-center">
+                                    <h3 id="card-en" class="text-4xl font-black text-slate-900 tracking-tight">Apple</h3>
+                                    <p id="card-phonetic" class="text-sm text-limebrand-700 mt-2 font-bold bg-limebrand-100 px-3 py-0.5 rounded-full inline-block">/ˈæp.əl/</p>
+                                </div>
+                                <div class="text-xs font-bold text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-rotate text-limebrand-500"></i> Kliknij, aby obrócić
+                                </div>
+                            </div>
+
+                            <!-- Back (PL) -->
+                            <div class="absolute inset-0 w-full h-full rounded-3xl p-8 flex flex-col justify-between items-center backface-hidden rotate-y-180 bg-gradient-to-br from-slate-900 via-slate-800 to-limebrand-950 text-white">
+                                <div class="w-full flex justify-between items-center text-xs text-limebrand-300 font-bold uppercase">
+                                    <span class="bg-slate-800 px-2.5 py-1 rounded-md text-limebrand-300">Tłumaczenie PL</span>
+                                    <i class="fa-solid fa-circle-check text-limebrand-400 text-lg"></i>
+                                </div>
+                                <div class="text-center">
+                                    <h3 id="card-pl" class="text-4xl font-black text-limebrand-300">Jabłko</h3>
+                                </div>
+                                <div class="text-xs text-slate-400 font-semibold">
+                                    Oceń stopień opanowania słówka
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Controls -->
+                    <div class="flex justify-center items-center gap-4 max-w-md mx-auto pt-2">
+                        <button onclick="nextCard(false)" class="flex-1 py-3.5 px-4 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-extrabold border border-rose-200 transition-all text-sm flex items-center justify-center gap-2 hover:scale-105">
+                            <i class="fa-solid fa-xmark text-lg"></i> Jeszcze ćwiczę
+                        </button>
+                        <button onclick="nextCard(true)" class="flex-1 py-3.5 px-4 rounded-xl bg-limebrand-400 text-slate-950 hover:bg-limebrand-300 font-black border border-limebrand-400 transition-all text-sm flex items-center justify-center gap-2 shadow-md hover:scale-105">
+                            <i class="fa-solid fa-check text-lg"></i> Już znam!
+                        </button>
+                    </div>
+
+                    <!-- Progress Counter -->
+                    <div class="text-center text-xs font-extrabold text-slate-500">
+                        Fiszka <span id="card-index" class="text-limebrand-600">1</span> z <span id="card-total">4</span>
+                    </div>
+                </div>
+
+                <!-- DEMO MODE 2: QUIZ -->
+                <div id="demo-quiz-view" class="hidden max-w-lg mx-auto bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl">
+                    
+                    <!-- Active Quiz View -->
+                    <div id="quiz-active">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-black text-limebrand-700 bg-limebrand-100 px-3 py-1 rounded-full border border-limebrand-300">
+                                Pytanie <span id="quiz-step">1</span> / 4
+                            </span>
+                            <span class="text-xs font-bold text-slate-400">Poziom A1</span>
+                        </div>
+
+                        <!-- Animated Progress Bar -->
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-6">
+                            <div id="quiz-progress-bar" class="bg-limebrand-400 h-full rounded-full transition-all duration-300 w-1/4"></div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center mb-6 shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Wskaż poprawne tłumaczenie:</p>
+                            <h3 id="quiz-question-word" class="text-3xl font-black text-slate-900 mt-2">Apple</h3>
+                        </div>
+
+                        <!-- Answer Options -->
+                        <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Options rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Quiz Result Summary (Hidden by default) -->
+                    <div id="quiz-results" class="hidden text-center space-y-6">
+                        <div class="w-20 h-20 rounded-full bg-limebrand-400 text-slate-950 flex items-center justify-center text-4xl mx-auto font-black shadow-xl animate-bounce">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+
+                        <div>
+                            <h3 class="text-3xl font-black text-slate-900">Brawo! Quiz Ukończony</h3>
+                            <p class="text-slate-500 text-sm mt-1 font-medium">Oto Twoje automatyczne podsumowanie:</p>
+                        </div>
+
+                        <!-- Result Stat Box -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                            <div class="flex justify-between items-center border-b pb-3">
+                                <span class="text-sm font-semibold text-slate-600">Wynik testu:</span>
+                                <span id="res-score" class="text-base font-black text-slate-900">4 / 4 (100%)</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b pb-3">
+                                <span class="text-sm font-semibold text-slate-600">Proponowana Ocena:</span>
+                                <span id="res-grade" class="text-base font-black text-slate-950 bg-limebrand-400 px-3 py-1 rounded-lg">6 (Celujący)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-semibold text-slate-600">Szacowany ranking:</span>
+                                <span class="text-sm font-bold text-amber-600">🏆 TOP 5% Uczniów</span>
+                            </div>
+                        </div>
+
+                        <button onclick="resetQuiz()" class="shimmer-btn w-full py-4 bg-limebrand-400 hover:bg-limebrand-300 text-slate-950 font-black rounded-xl transition-all shadow-lg text-base">
+                            Rozwiąż ponownie
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-white border-t border-slate-900 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                
+                <!-- Col 1: Logo & Info -->
+                <div class="md:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <img src="https://imgur.com/HD1VJqb.png" alt="Parleo.pl Logo" class="h-8 w-auto" onerror="this.onerror=null; this.src='https://placehold.co/100x30/a3e635/000000?text=Parleo.pl';">
+                        <span class="text-2xl font-black tracking-tight text-white">
+                            Parleo<span class="text-limebrand-400">.pl</span>
+                        </span>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm max-w-sm leading-relaxed">
+                        Nowoczesna i w 100% darmowa platforma wspierająca naukę języka angielskiego w szkołach. Fiszki, testy, automatyczne ocenianie i rywalizacja klasowa.
+                    </p>
+                    <div class="text-xs text-limebrand-400 font-bold">
+                        <i class="fa-solid fa-heart mr-1"></i> Tworzone z pasją dla polskiej edukacji.
+                    </div>
+                </div>
+
+                <!-- Col 2: Navigation -->
+                <div>
+                    <h4 class="font-bold text-white text-sm mb-4">Szybkie Linki</h4>
+                    <ul class="space-y-2 text-xs text-slate-400 font-medium">
+                        <li><a href="#funkcje" class="hover:text-limebrand-400 transition-colors">Funkcje Platformy</a></li>
+                        <li><a href="#nauczyciele" class="hover:text-limebrand-400 transition-colors">System Oceniania</a></li>
+                        <li><a href="#uczniowie" class="hover:text-limebrand-400 transition-colors">Ranking Uczniów</a></li>
+                        <li><a href="#demo" class="hover:text-limebrand-400 transition-colors">Demo Fiszek</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Portal link -->
+                <div>
+                    <h4 class="font-bold text-white text-sm mb-4">Konto</h4>
+                    <ul class="space-y-2 text-xs text-slate-400 font-medium">
+                        <li><a href="https://parleo.pl/login" class="hover:text-limebrand-400 transition-colors">Logowanie</a></li>
+                        <li><a href="https://parleo.pl/login" class="hover:text-limebrand-400 transition-colors">Rejestracja Nauczyciela</a></li>
+                        <li><a href="https://parleo.pl/login" class="hover:text-limebrand-400 transition-colors">Kod Klasy Ucznia</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="border-t border-slate-900 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-4">
+                <p>&copy; 2026 Parleo.pl. Wszelkie prawa zastrzeżone.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-slate-300">Regulamin</a>
+                    <a href="#" class="hover:text-slate-300">Polityka Prywatności</a>
+                    <a href="#" class="hover:text-slate-300">Kontakt</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Mobile Menu Toggle ---
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- Demo Data ---
+        const demoWords = [
+            { en: 'Apple', pl: 'Jabłko', phonetic: '/ˈæp.əl/', options: ['Jabłko', 'Gruszka', 'Banan', 'Śliwka'] },
+            { en: 'Dog', pl: 'Pies', phonetic: '/dɒɡ/', options: ['Kot', 'Pies', 'Ptak', 'Ryba'] },
+            { en: 'House', pl: 'Dom', phonetic: '/haʊs/', options: ['Auto', 'Szkoła', 'Dom', 'Drzewo'] },
+            { en: 'Sun', pl: 'Słońce', phonetic: '/sʌn/', options: ['Księżyc', 'Słońce', 'Chmura', 'Deszcz'] }
+        ];
+
+        // --- Flashcards State ---
+        let currentCardIdx = 0;
+        let isFlipped = false;
+
+        function updateCardView() {
+            const word = demoWords[currentCardIdx];
+            document.getElementById('card-en').innerText = word.en;
+            document.getElementById('card-pl').innerText = word.pl;
+            document.getElementById('card-phonetic').innerText = word.phonetic;
+            document.getElementById('card-index').innerText = currentCardIdx + 1;
+            
+            // Reset Flip
+            const cardEl = document.getElementById('flashcard');
+            cardEl.classList.remove('rotate-y-180');
+            isFlipped = false;
+        }
+
+        function flipCard() {
+            const cardEl = document.getElementById('flashcard');
+            cardEl.classList.toggle('rotate-y-180');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard(known) {
+            currentCardIdx = (currentCardIdx + 1) % demoWords.length;
+            updateCardView();
+        }
+
+        function speakWord(e) {
+            e.stopPropagation();
+            const word = demoWords[currentCardIdx].en;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- Quiz Mode State ---
+        let currentQuizIdx = 0;
+        let correctAnswers = 0;
+
+        function switchDemoMode(mode) {
+            const fcBtn = document.getElementById('tab-flashcards');
+            const qzBtn = document.getElementById('tab-quiz');
+            const fcView = document.getElementById('demo-flashcards-view');
+            const qzView = document.getElementById('demo-quiz-view');
+
+            if (mode === 'flashcards') {
+                fcBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-black transition-all bg-limebrand-400 text-slate-950 shadow-md';
+                qzBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-900';
+                fcView.classList.remove('hidden');
+                qzView.classList.add('hidden');
+            } else {
+                qzBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-black transition-all bg-limebrand-400 text-slate-950 shadow-md';
+                fcBtn.className = 'px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-900';
+                qzView.classList.remove('hidden');
+                fcView.classList.add('hidden');
+                renderQuizStep();
+            }
+        }
+
+        function renderQuizStep() {
+            const item = demoWords[currentQuizIdx];
+            document.getElementById('quiz-step').innerText = currentQuizIdx + 1;
+            document.getElementById('quiz-question-word').innerText = item.en;
+
+            // Update Progress Bar
+            const progress = ((currentQuizIdx + 1) / demoWords.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progress}%`;
+
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            item.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'p-4 bg-white hover:bg-limebrand-100/60 border border-slate-200 hover:border-limebrand-400 rounded-2xl text-slate-900 font-bold text-center transition-all shadow-sm active:scale-95 text-sm hover:scale-[1.02]';
+                btn.innerText = opt;
+                btn.onclick = () => selectAnswer(opt, item.pl);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selected, correct) {
+            if (selected === correct) {
+                correctAnswers++;
+            }
+
+            currentQuizIdx++;
+
+            if (currentQuizIdx < demoWords.length) {
+                renderQuizStep();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function calculateGrade(percent) {
+            if (percent >= 90) return '6 (Celujący)';
+            if (percent >= 75) return '5 (Bardzo dobry)';
+            if (percent >= 60) return '4 (Dobry)';
+            if (percent >= 40) return '3 (Dostateczny)';
+            if (percent >= 15) return '2 (Dopuszczający)';
+            return '1 (Niedostateczny)';
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-active').classList.add('hidden');
+            const resultsEl = document.getElementById('quiz-results');
+            resultsEl.classList.remove('hidden');
+
+            const percent = Math.round((correctAnswers / demoWords.length) * 100);
+            document.getElementById('res-score').innerText = `${correctAnswers} / ${demoWords.length} (${percent}%)`;
+            document.getElementById('res-grade').innerText = calculateGrade(percent);
+
+            // Confetti animation celebration
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#a3e635', '#84cc16', '#38bdf8', '#fbbf24']
+                });
+            }
+        }
+
+        function resetQuiz() {
+            currentQuizIdx = 0;
+            correctAnswers = 0;
+            document.getElementById('quiz-results').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            renderQuizStep();
+        }
+
+        // Initialize Card Count
+        document.getElementById('card-total').innerText = demoWords.length;
+    </script>
+</body>
+</html>
