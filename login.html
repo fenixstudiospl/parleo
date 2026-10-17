@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parleo.pl - Nowoczesna Nauka Angielskiego</title>
+    <link rel="icon" type="image/png" href="https://imgur.com/HD1VJqb.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05); }
+        @keyframes popFast { 0% { opacity: 0; transform: scale(0.97) translateY(4px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .animate-pop-fast { animation: popFast 0.15s cubic-bezier(0.16, 1, 0.3, 1); }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col selection:bg-lime-200 selection:text-lime-900">
+
+    <!-- NAWIGACJA -->
+    <nav class="glass-card sticky top-0 z-50 border-b border-slate-200/60 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="playSound('click'); showSection('landing')">
+                <div class="bg-lime-500 p-2.5 rounded-2xl shadow-md shadow-lime-500/20 group-hover:scale-105 transition">
+                    <img src="https://imgur.com/HD1VJqb.png" alt="Parleo Logo" class="h-7 w-auto filter brightness-0 invert">
+                </div>
+                <span class="text-2xl font-black tracking-tight text-slate-900">Parleo<span class="text-lime-600">.pl</span></span>
+            </div>
+            <div id="nav-auth-buttons" class="flex items-center space-x-3">
+                <button onclick="playSound('click'); openAuthModal('student')" class="px-5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-slate-100 transition">Panel Ucznia</button>
+                <button onclick="playSound('click'); openAuthModal('teacher')" class="px-5 py-2.5 rounded-2xl font-bold bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-600 hover:to-emerald-600 text-white shadow-lg shadow-lime-500/30 transition transform hover:-translate-y-0.5">Panel Nauczyciela</button>
+            </div>
+            <div id="nav-user-info" class="hidden flex items-center space-x-4">
+                <span id="user-display-name" class="font-bold text-slate-700 bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200"></span>
+                <button onclick="playSound('click'); logout()" class="px-4 py-2 rounded-2xl text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition border border-red-100">Wyloguj</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- GŁÓWNA ZAWARTOŚĆ -->
+    <main class="flex-grow">
+        <!-- STRONA GŁÓWNA -->
+        <section id="sec-landing" class="max-w-7xl mx-auto px-4 py-20 text-center">
+            <span class="inline-block px-5 py-2 bg-lime-100 text-lime-800 font-extrabold rounded-full text-xs uppercase tracking-wider mb-6 shadow-sm border border-lime-200">100% Darmowa Platforma Szkolna</span>
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-6 leading-tight">Nowoczesna Nauka Języka<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-600">Angielskiego w Szkole</span></h1>
+            <p class="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">Szybka nauka słówek i zdań, lektor audio, automatyczne ocenianie i pełna integracja z Enterem!</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="playSound('click'); openAuthModal('teacher')" class="px-8 py-4 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-extrabold rounded-2xl shadow-xl shadow-lime-500/30 text-lg transition transform hover:-translate-y-1">Strefa Nauczyciela</button>
+                <button onclick="playSound('click'); openAuthModal('student')" class="px-8 py-4 bg-slate-900 text-white font-extrabold rounded-2xl shadow-xl text-lg transition transform hover:-translate-y-1">Strefa Ucznia</button>
+            </div>
+        </section>
+
+        <!-- PANEL NAUCZYCIELA -->
+        <section id="sec-teacher" class="hidden max-w-7xl mx-auto px-4 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900">Panel Nauczyciela</h2>
+                    <p class="text-slate-500">Zarządzaj klasami, pakietami słówek i zdań oraz sprawdzaj oceny</p>
+                </div>
+                <button onclick="playSound('click'); openNewClassModal()" class="px-6 py-3.5 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-lime-500/20 transition">+ Dodaj Nową Klasę</button>
+            </div>
+
+            <div id="classes-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
+
+            <div id="teacher-class-view" class="hidden glass-card p-8 rounded-3xl shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-slate-200/80 pb-4 gap-4">
+                    <h3 id="teacher-view-class-title" class="text-2xl font-black text-slate-900">Klasa</h3>
+                    <button onclick="playSound('click'); backToClasses()" class="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition">← Powrót do klas</button>
+                </div>
+
+                <div class="flex space-x-2 border-b border-slate-200/80 mb-6">
+                    <button onclick="switchTeacherTab('students')" id="tab-btn-students" class="pb-3 px-4 font-bold border-b-2 border-lime-500 text-lime-600 transition">Uczniowie i Oceny</button>
+                    <button onclick="switchTeacherTab('words')" id="tab-btn-words" class="pb-3 px-4 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition">Słówka i Zdania w Klasie</button>
+                </div>
+
+                <div id="teacher-tab-students" class="space-y-4">
+                    <div id="teacher-students-list" class="space-y-3 max-h-[500px] overflow-y-auto pr-2"></div>
+                </div>
+
+                <div id="teacher-tab-words" class="hidden space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">Baza Materiałów</h4>
+                        <div class="flex space-x-2">
+                            <button onclick="playSound('click'); openPacksModal()" class="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-2xl border border-indigo-200 transition shadow-sm">📚 Gotowe Pakiety (Słówka i Zdania)</button>
+                            <button onclick="playSound('click'); openAddWordModal()" class="px-4 py-2.5 bg-lime-500 hover:bg-lime-600 text-white font-bold text-xs rounded-2xl shadow-md transition">+ Dodaj Własne</button>
+                        </div>
+                    </div>
+                    <div id="teacher-words-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANEL UCZNIA -->
+        <section id="sec-student" class="hidden max-w-4xl mx-auto px-4 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-8 rounded-3xl text-center md:col-span-2 flex flex-col justify-center items-center shadow-xl">
+                    <h2 class="text-3xl font-black text-slate-900 mb-1">Cześć, <span id="student-name-display" class="text-lime-600">Uczeń</span>! 👋</h2>
+                    <p class="text-slate-500 mb-4 font-medium">Twoje punkty XP: <span id="student-xp-display" class="font-black text-slate-900 text-2xl">0 XP</span></p>
+                    <div id="lesson-limit-info" class="text-xs font-bold px-4 py-2 bg-amber-50 text-amber-700 rounded-xl mb-6 border border-amber-200"></div>
+                    <button id="start-lesson-btn" onclick="playSound('click'); startStudentLesson()" class="px-10 py-4 bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-lime-500/30 transition transform hover:-translate-y-0.5">Rozpocznij Lekcję (40 Pytań) 🚀</button>
+                </div>
+
+                <div class="bg-gradient-to-br from-lime-500 to-emerald-600 p-6 rounded-3xl text-white shadow-xl flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">Cel Tygodnia</span>
+                        <h3 class="text-2xl font-black mt-3 mb-1">7 Dni z Rzędu 🔥</h3>
+                        <p class="text-sm text-lime-100">Ucz się codziennie, aby zdobyć bonus 300 XP!</p>
+                    </div>
+                    <div class="mt-6">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span>Postęp: <span id="streak-days-count">0</span>/7 dni</span>
+                        </div>
+                        <div class="w-full bg-black/20 h-3 rounded-full overflow-hidden mb-4">
+                            <div id="streak-progress-bar" class="bg-white h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <button id="claim-streak-btn" onclick="claimStreakReward()" disabled class="w-full py-2.5 bg-white/40 text-white font-extrabold rounded-xl text-sm cursor-not-allowed transition">Odbierz 300 XP</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-3xl shadow-xl">
+                <h3 class="font-bold text-xl text-slate-900 mb-4 flex items-center justify-between">
+                    <span>Ranking Twojej Klasy 🏆</span>
+                    <span class="text-xs font-semibold text-slate-400">Wyświetlane są tylko imiona</span>
+                </h3>
+                <div id="student-leaderboard-list" class="space-y-2"></div>
+            </div>
+        </section>
+
+        <!-- SEKCJA LEKCJI -->
+        <section id="sec-lesson" class="hidden max-w-2xl mx-auto px-4 py-10">
+            <div class="glass-card p-8 rounded-3xl shadow-2xl relative">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="lesson-progress-text" class="font-bold text-slate-400 text-sm">Pytanie 1 / 40</span>
+                    <button onclick="playSound('click'); quitLesson()" class="text-slate-500 hover:text-slate-800 font-bold text-sm bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">✕ Zakończ</button>
+                </div>
+                <div id="lesson-content-area"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODALE -->
+    <div id="modal-auth" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
+            <button onclick="playSound('click'); closeModal('modal-auth')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            <h3 id="auth-modal-title" class="text-2xl font-black mb-6 text-slate-900">Logowanie</h3>
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <input type="hidden" id="auth-role">
+                <div>
+                    <label id="auth-label-1" class="block text-sm font-bold text-slate-700 mb-1">Login</label>
+                    <input type="text" id="auth-input-1" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-lime-500 font-medium">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Hasło</label>
+                    <input type="password" id="auth-input-2" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-lime-500 font-medium">
+                </div>
+                <div id="auth-toggle-box" class="text-sm text-center pt-2">
+                    <a href="#" onclick="playSound('click'); toggleAuthMode(event)" id="auth-toggle-link" class="text-lime-600 font-bold hover:underline">Nie masz konta? Zarejestruj się</a>
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-bold rounded-2xl shadow-lg transition">Zaloguj</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-class" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg p-8 rounded-3xl shadow-2xl relative">
+            <button onclick="playSound('click'); closeModal('modal-class')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            <h3 class="text-2xl font-black mb-4 text-slate-900">Dodaj Nową Klasę</h3>
+            <form onsubmit="handleCreateClass(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nazwa Klasy (np. 7A)</label>
+                    <input type="text" id="new-class-name" required placeholder="np. 7A" class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-lime-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Uczniowie (każdy w nowej linii, max 30)</label>
+                    <textarea id="new-class-students" rows="6" placeholder="Jan Kowalski&#10;Anna Nowak" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-lime-500"></textarea>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-bold rounded-2xl shadow-lg transition">Utwórz Klasę i Wygeneruj Konta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP PAKIETÓW SŁÓWEK I ZDAŃ -->
+    <div id="modal-packs" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-3xl p-8 rounded-3xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="playSound('click'); closeModal('modal-packs')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            <h3 class="text-2xl font-black mb-2 text-slate-900">Wybierz Gotowy Pakiet</h3>
+            <p class="text-slate-500 text-sm mb-6">Wybierz zestaw słówek lub pełnych zdań (po 20 elementów), aby dodać je do bazy klasy.</p>
+
+            <div class="space-y-6">
+                <!-- SŁÓWKA -->
+                <div>
+                    <h4 class="font-extrabold text-lime-700 text-base mb-3 uppercase tracking-wider">🌱 Słówka: Klasy 1-3 SP</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button onclick="importWordPack('13_animals')" class="p-4 bg-slate-50 hover:bg-lime-50 border border-slate-200 hover:border-lime-500 rounded-2xl text-left transition font-bold text-slate-800">🐶 Zwierzęta (20)</button>
+                        <button onclick="importWordPack('13_city')" class="p-4 bg-slate-50 hover:bg-lime-50 border border-slate-200 hover:border-lime-500 rounded-2xl text-left transition font-bold text-slate-800">🏙️ Miasto (20)</button>
+                        <button onclick="importWordPack('13_body')" class="p-4 bg-slate-50 hover:bg-lime-50 border border-slate-200 hover:border-lime-500 rounded-2xl text-left transition font-bold text-slate-800">💪 Części ciała (20)</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-extrabold text-indigo-700 text-base mb-3 uppercase tracking-wider">🎒 Słówka: Klasy 4-6 SP</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="importWordPack('46_food')" class="p-4 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition font-bold text-slate-800">🍕 Jedzenie i Gotowanie (20)</button>
+                        <button onclick="importWordPack('46_school')" class="p-4 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition font-bold text-slate-800">📚 Szkoła i Przedmioty (20)</button>
+                    </div>
+                </div>
+
+                <!-- NOWE PAKIETY ZDAŃ -->
+                <div>
+                    <h4 class="font-extrabold text-amber-600 text-base mb-3 uppercase tracking-wider">🧩 Zwroty i Zdania Codzienne (Klasy 4-6)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="importWordPack('sentences_daily')" class="p-4 bg-amber-50/60 hover:bg-amber-100 border border-amber-200 hover:border-amber-500 rounded-2xl text-left transition font-bold text-slate-800">🗣️ Codzienne Zwroty w Szkole (20 zdania)</button>
+                        <button onclick="importWordPack('sentences_family')" class="p-4 bg-amber-50/60 hover:bg-amber-100 border border-amber-200 hover:border-amber-500 rounded-2xl text-left transition font-bold text-slate-800">🏠 Dom i Rodzina (20 zdania)</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-extrabold text-purple-700 text-base mb-3 uppercase tracking-wider">💬 Zdania Złożone i Konwersacje (Klasy 7-8)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="importWordPack('sentences_advanced')" class="p-4 bg-purple-50/60 hover:bg-purple-100 border border-purple-200 hover:border-purple-500 rounded-2xl text-left transition font-bold text-slate-800">💻 Technologia i Przyszłość (20 zdań)</button>
+                        <button onclick="importWordPack('sentences_travel')" class="p-4 bg-purple-50/60 hover:bg-purple-100 border border-purple-200 hover:border-purple-500 rounded-2xl text-left transition font-bold text-slate-800">✈️ Podróże i Opinie (20 zdań)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-word" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
+            <button onclick="playSound('click'); closeModal('modal-word')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            <h3 id="word-modal-title" class="text-2xl font-black mb-4 text-slate-900">Dodaj Słówko / Zdanie</h3>
+            <form onsubmit="handleSaveWord(event)" class="space-y-4">
+                <input type="hidden" id="edit-word-id">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Po angielsku (EN)</label>
+                    <input type="text" id="word-en" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-lime-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Po polsku (PL)</label>
+                    <input type="text" id="word-pl" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-lime-500">
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-bold rounded-2xl shadow-lg transition">Zapisz</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE & KOD APLIKACJI -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAd7wiwFgPaiVh299ZTt2CnMhWnDIE0mGE",
+            authDomain: "parelo.firebaseapp.com",
+            databaseURL: "https://parelo-default-rtdb.firebaseio.com",
+            projectId: "parelo",
+            storageBucket: "parelo.firebasestorage.app",
+            messagingSenderId: "641490504366",
+            appId: "1:641490504366:web:402c245f9055ef225abb3f",
+            measurementId: "G-JZMV5VX214"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.fb = { collection, addDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, getDoc };
+
+        // LEKTOR AUDIO
+        window.speakEN = function(text, rate = 0.95) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // PRZYJEMNE DŹWIĘKI
+        let audioCtx = null;
+        window.playSound = function(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1160, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.18);
+                } else if (type === 'error') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(170, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.18);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+                }
+            } catch(e) {}
+        }
+
+        let currentUser = JSON.parse(localStorage.getItem('parleo_user')) || null;
+        let currentRole = localStorage.getItem('parleo_role') || null;
+        let activeClassId = null;
+        let isTeacherRegister = false;
+
+        let lessonData = {
+            step: 0,
+            words: [],
+            currentIdx: 0,
+            waitingForRetry: false,
+            currentQuestion: null,
+            sentenceWords: [],
+            selectedSentenceWords: []
+        };
+
+        window.onload = () => {
+            if (currentUser && currentRole) {
+                if (currentRole === 'teacher') showTeacherDashboard();
+                else if (currentRole === 'student') showStudentDashboard();
+            }
+        };
+
+        window.showSection = function(sec) {
+            ['landing', 'teacher', 'student', 'lesson'].forEach(s => {
+                document.getElementById(`sec-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`sec-${sec}`).classList.remove('hidden');
+        }
+
+        window.openAuthModal = function(role) {
+            currentRole = role;
+            isTeacherRegister = false;
+            document.getElementById('auth-role').value = role;
+            document.getElementById('modal-auth').classList.remove('hidden');
+            if (role === 'teacher') {
+                document.getElementById('auth-modal-title').innerText = 'Logowanie Nauczyciela';
+                document.getElementById('auth-label-1').innerText = 'Adres E-mail';
+                document.getElementById('auth-input-1').type = 'email';
+                document.getElementById('auth-toggle-box').style.display = 'block';
+                document.getElementById('auth-toggle-link').innerText = 'Nie masz konta? Zarejestruj się';
+            } else {
+                document.getElementById('auth-modal-title').innerText = 'Logowanie Ucznia';
+                document.getElementById('auth-label-1').innerText = 'Login Ucznia';
+                document.getElementById('auth-input-1').type = 'text';
+                document.getElementById('auth-toggle-box').style.display = 'none';
+            }
+        }
+
+        window.toggleAuthMode = function(e) {
+            e.preventDefault();
+            isTeacherRegister = !isTeacherRegister;
+            document.getElementById('auth-modal-title').innerText = isTeacherRegister ? 'Rejestracja Nauczyciela' : 'Logowanie Nauczyciela';
+            document.getElementById('auth-submit-btn').innerText = isTeacherRegister ? 'Zarejestruj' : 'Zaloguj';
+            document.getElementById('auth-toggle-link').innerText = isTeacherRegister ? 'Masz już konto? Zaloguj się' : 'Nie masz konta? Zarejestruj się';
+        }
+
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        window.handleAuthSubmit = async function(e) {
+            e.preventDefault();
+            const role = document.getElementById('auth-role').value;
+            const val1 = document.getElementById('auth-input-1').value.trim();
+            const val2 = document.getElementById('auth-input-2').value.trim();
+
+            if (role === 'teacher') {
+                const q = window.fb.query(window.fb.collection(db, 'teachers'), window.fb.where('email', '==', val1));
+                const snap = await window.fb.getDocs(q);
+
+                if (isTeacherRegister) {
+                    if (!snap.empty) {
+                        alert('Na ten adres e-mail zarejestrowany jest już nauczyciel!');
+                        return;
+                    }
+                    const docRef = await window.fb.addDoc(window.fb.collection(db, 'teachers'), { email: val1, password: val2 });
+                    currentUser = { id: docRef.id, email: val1 };
+                } else {
+                    if (snap.empty) { alert('Nie znaleziono takiego nauczyciela.'); return; }
+                    const teacherData = snap.docs[0].data();
+                    if (teacherData.password !== val2) { alert('Błędne hasło!'); return; }
+                    currentUser = { id: snap.docs[0].id, email: teacherData.email };
+                }
+                localStorage.setItem('parleo_user', JSON.stringify(currentUser));
+                localStorage.setItem('parleo_role', 'teacher');
+                closeModal('modal-auth');
+                showTeacherDashboard();
+            } else {
+                const q = window.fb.query(window.fb.collection(db, 'students'), window.fb.where('login', '==', val1));
+                const snap = await window.fb.getDocs(q);
+                if (snap.empty) { alert('Nie znaleziono ucznia o takim loginie.'); return; }
+                const studentData = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                if (studentData.password !== val2) { alert('Błędne hasło ucznia!'); return; }
+                
+                currentUser = studentData;
+                localStorage.setItem('parleo_user', JSON.stringify(currentUser));
+                localStorage.setItem('parleo_role', 'student');
+                closeModal('modal-auth');
+                showStudentDashboard();
+            }
+        }
+
+        window.logout = function() {
+            localStorage.clear();
+            currentUser = null;
+            currentRole = null;
+            activeClassId = null;
+            showSection('landing');
+            document.getElementById('nav-auth-buttons').classList.remove('hidden');
+            document.getElementById('nav-user-info').classList.add('hidden');
+        }
+
+        // NAUCZYCIEL
+        async function showTeacherDashboard() {
+            showSection('teacher');
+            document.getElementById('nav-auth-buttons').classList.add('hidden');
+            document.getElementById('nav-user-info').classList.remove('hidden');
+            document.getElementById('user-display-name').innerText = `Nauczyciel: ${currentUser.email}`;
+            document.getElementById('teacher-class-view').classList.add('hidden');
+            
+            const grid = document.getElementById('classes-grid');
+            grid.innerHTML = '<p class="text-slate-500 col-span-3">Ładowanie klas...</p>';
+
+            const q = window.fb.query(window.fb.collection(db, 'classes'), window.fb.where('teacherId', '==', currentUser.id));
+            const snap = await window.fb.getDocs(q);
+            grid.innerHTML = '';
+
+            if (snap.empty) {
+                grid.innerHTML = '<p class="text-slate-500 col-span-3 glass-card p-8 rounded-3xl text-center">Brak klas. Kliknij "+ Dodaj Nową Klasę".</p>';
+                return;
+            }
+
+            snap.forEach(docSnap => {
+                const c = docSnap.data();
+                const cid = docSnap.id;
+                grid.innerHTML += `
+                    <div class="glass-card p-6 rounded-3xl shadow-sm hover:shadow-md transition cursor-pointer group" onclick="playSound('click'); selectClass('${cid}', '${c.name}')">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3.5 py-1 bg-lime-100 text-lime-800 font-extrabold text-xs rounded-full">Klasa</span>
+                            <span class="text-slate-400 group-hover:text-lime-600 transition font-bold">Otwórz →</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 mb-1">${c.name}</h3>
+                        <p class="text-slate-500 text-sm font-medium">Zarządzaj słówkami i uczniami</p>
+                    </div>
+                `;
+            });
+        }
+
+        window.openNewClassModal = function() {
+            document.getElementById('modal-class').classList.remove('hidden');
+        }
+
+        window.handleCreateClass = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-class-name').value.trim();
+            const rawStudents = document.getElementById('new-class-students').value.trim().split('\n');
+            
+            if (rawStudents.length > 30) {
+                alert('Maksymalnie 30 uczniów w jednej klasie!');
+                return;
+            }
+
+            const classRef = await window.fb.addDoc(window.fb.collection(db, 'classes'), {
+                name: name,
+                teacherId: currentUser.id
+            });
+
+            for (let line of rawStudents) {
+                const fullName = line.trim();
+                if (!fullName) continue;
+                const parts = fullName.split(' ');
+                const firstName = parts[0];
+                const login = (firstName + Math.floor(Math.random()*900+100)).toLowerCase();
+                const password = Math.random().toString(36).substring(2, 10);
+
+                await window.fb.addDoc(window.fb.collection(db, 'students'), {
+                    classId: classRef.id,
+                    fullName: fullName,
+                    firstName: firstName,
+                    login: login,
+                    password: password,
+                    xp: 0,
+                    wordsProgress: {},
+                    streakDays: 0,
+                    lastActiveDate: '',
+                    streakClaimed: false,
+                    dailyLessonsCount: 0,
+                    lastLessonDate: ''
+                });
+            }
+
+            closeModal('modal-class');
+            document.getElementById('new-class-name').value = '';
+            document.getElementById('new-class-students').value = '';
+            showTeacherDashboard();
+        }
+
+        window.selectClass = async function(classId, className) {
+            activeClassId = classId;
+            document.getElementById('classes-grid').classList.add('hidden');
+            document.getElementById('teacher-class-view').classList.remove('hidden');
+            document.getElementById('teacher-view-class-title').innerText = `Zarządzanie klasą: ${className}`;
+
+            switchTeacherTab('students');
+            loadTeacherStudents(classId);
+            loadTeacherWords(classId);
+        }
+
+        window.backToClasses = function() {
+            activeClassId = null;
+            document.getElementById('classes-grid').classList.remove('hidden');
+            document.getElementById('teacher-class-view').classList.add('hidden');
+            showTeacherDashboard();
+        }
+
+        window.switchTeacherTab = function(tab) {
+            playSound('click');
+            const sTab = document.getElementById('teacher-tab-students');
+            const wTab = document.getElementById('teacher-tab-words');
+            const sBtn = document.getElementById('tab-btn-students');
+            const wBtn = document.getElementById('tab-btn-words');
+
+            if (tab === 'students') {
+                sTab.classList.remove('hidden');
+                wTab.classList.add('hidden');
+                sBtn.className = "pb-3 px-4 font-bold border-b-2 border-lime-500 text-lime-600 transition";
+                wBtn.className = "pb-3 px-4 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition";
+            } else {
+                sTab.classList.add('hidden');
+                wTab.classList.remove('hidden');
+                wBtn.className = "pb-3 px-4 font-bold border-b-2 border-lime-500 text-lime-600 transition";
+                sBtn.className = "pb-3 px-4 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition";
+            }
+        }
+
+        async function loadTeacherStudents(classId) {
+            const container = document.getElementById('teacher-students-list');
+            container.innerHTML = '<p class="text-slate-500">Ładowanie listy uczniów...</p>';
+            
+            const q = window.fb.query(window.fb.collection(db, 'students'), window.fb.where('classId', '==', classId));
+            const snap = await window.fb.getDocs(q);
+            container.innerHTML = '';
+
+            if (snap.empty) {
+                container.innerHTML = '<p class="text-slate-500">Brak uczniów w tej klasie.</p>';
+                return;
+            }
+
+            const wordsSnap = await window.fb.getDocs(window.fb.query(window.fb.collection(db, 'vocabulary'), window.fb.where('classId', '==', classId)));
+            const totalWords = wordsSnap.size;
+
+            snap.forEach(docSnap => {
+                const s = docSnap.data();
+                let knownCount = 0;
+                let wordEntries = Object.entries(s.wordsProgress || {});
+                wordEntries.forEach(([wid, prog]) => {
+                    if (prog.correctStreak >= 3) knownCount++;
+                });
+
+                const percent = totalWords > 0 ? Math.round((knownCount / totalWords) * 100) : 0;
+                let grade = 1;
+                if (percent >= 90) grade = 6;
+                else if (percent >= 75) grade = 5;
+                else if (percent >= 60) grade = 4;
+                else if (percent >= 40) grade = 3;
+                else if (percent >= 15) grade = 2;
+                else grade = 1;
+
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+                        <div>
+                            <span class="font-bold text-slate-900 text-lg">${s.fullName}</span>
+                            <div class="text-xs text-slate-500 mt-0.5">Login: <b class="text-slate-700">${s.login}</b> | Hasło: <b class="text-slate-700">${s.password}</b></div>
+                        </div>
+                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                            <div class="text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 font-medium">
+                                XP: <b>${s.xp}</b> | OPANOWANE: <b>${knownCount}/${totalWords} (${percent}%)</b> | Sugerowana Ocena: <b class="text-lime-600 text-sm">${grade}</b>
+                            </div>
+                            <button onclick="playSound('click'); navigator.clipboard.writeText('Login: ${s.login}, Hasło: ${s.password}'); alert('Skopiowano dane ucznia!');" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-xs font-bold rounded-xl border border-slate-200 transition shadow-sm">Kopiuj</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function loadTeacherWords(classId) {
+            const container = document.getElementById('teacher-words-list');
+            container.innerHTML = '<p class="text-slate-500">Ładowanie słówek i zdań...</p>';
+
+            const q = window.fb.query(window.fb.collection(db, 'vocabulary'), window.fb.where('classId', '==', classId));
+            const snap = await window.fb.getDocs(q);
+            container.innerHTML = '';
+
+            if (snap.empty) {
+                container.innerHTML = '<p class="text-slate-500">Brak materiałów. Kliknij "📚 Gotowe Pakiety", aby wgrać zestaw słówek lub zdań.</p>';
+                return;
+            }
+
+            snap.forEach(docSnap => {
+                const w = docSnap.data();
+                const wid = docSnap.id;
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <button onclick="speakEN('${w.en}')" class="p-2 bg-lime-50 rounded-xl shadow-sm text-lime-600 hover:bg-lime-100 transition">🔊</button>
+                            <div>
+                                <span class="font-bold text-slate-900 text-base">${w.en}</span> ➔ <span class="text-slate-600 font-medium">${w.pl}</span>
+                            </div>
+                        </div>
+                        <div class="space-x-1">
+                            <button onclick="playSound('click'); openEditWordModal('${wid}', '${w.en}', '${w.pl}')" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-xs font-bold rounded-xl border border-slate-200 transition">Edytuj</button>
+                            <button onclick="playSound('click'); deleteWord('${wid}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition">Usuń</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openPacksModal = function() {
+            document.getElementById('modal-packs').classList.remove('hidden');
+        }
+
+        window.importWordPack = async function(packKey) {
+            if (!activeClassId) return;
+            const packs = {
+                '13_animals': [{en:'dog',pl:'pies'},{en:'cat',pl:'kot'},{en:'rabbit',pl:'królik'},{en:'bird',pl:'ptak'},{en:'fish',pl:'ryba'},{en:'horse',pl:'koń'},{en:'cow',pl:'krowa'},{en:'pig',pl:'świnia'},{en:'duck',pl:'kaczka'},{en:'sheep',pl:'owca'},{en:'lion',pl:'lew'},{en:'tiger',pl:'tygrys'},{en:'bear',pl:'niedźwiedź'},{en:'monkey',pl:'małpa'},{en:'elephant',pl:'słoń'},{en:'frog',pl:'żaba'},{en:'snake',pl:'wąż'},{en:'mouse',pl:'mysz'},{en:'fox',pl:'lis'},{en:'wolf',pl:'wilk'}],
+                '13_city': [{en:'street',pl:'ulica'},{en:'park',pl:'park'},{en:'shop',pl:'sklep'},{en:'school',pl:'szkoła'},{en:'house',pl:'dom'},{en:'car',pl:'samochód'},{en:'bus',pl:'autobus'},{en:'train',pl:'pociąg'},{en:'bridge',pl:'most'},{en:'hospital',pl:'szpital'},{en:'bank',pl:'bank'},{en:'hotel',pl:'hotel'},{en:'zoo',pl:'zoo'},{en:'library',pl:'biblioteka'},{en:'museum',pl:'muzeum'},{en:'station',pl:'stacja'},{en:'airport',pl:'lotnisko'},{en:'cinema',pl:'kino'},{en:'cafe',pl:'kawiarnia'},{en:'restaurant',pl:'restauracja'}],
+                '13_body': [{en:'head',pl:'głowa'},{en:'eye',pl:'oko'},{en:'ear',pl:'ucho'},{en:'nose',pl:'nos'},{en:'mouth',pl:'usta'},{en:'hand',pl:'dłoń'},{en:'foot',pl:'stopa'},{en:'leg',pl:'noga'},{en:'arm',pl:'ręka'},{en:'finger',pl:'palec u dłoni'},{en:'hair',pl:'włosy'},{en:'face',pl:'twarz'},{en:'tooth',pl:'ząb'},{en:'neck',pl:'szyja'},{en:'shoulder',pl:'ramię'},{en:'knee',pl:'kolano'},{en:'back',pl:'plecy'},{en:'stomach',pl:'brzuch'},{en:'brain',pl:'mózg'},{en:'heart',pl:'serce'}],
+                '46_food': [{en:'apple',pl:'jabłko'},{en:'bread',pl:'chleb'},{en:'cheese',pl:'ser'},{en:'milk',pl:'mleko'},{en:'water',pl:'woda'},{en:'pizza',pl:'pizza'},{en:'butter',pl:'masło'},{en:'egg',pl:'jajko'},{en:'chicken',pl:'kurczak'},{en:'soup',pl:'zupa'},{en:'rice',pl:'ryż'},{en:'pasta',pl:'makaron'},{en:'cake',pl:'ciasto'},{en:'juice',pl:'sok'},{en:'tea',pl:'herbata'},{en:'coffee',pl:'kawa'},{en:'potato',pl:'ziemniak'},{en:'carrot',pl:'marchewka'},{en:'fruit',pl:'owoc'},{en:'vegetable',pl:'warzywo'}],
+                '46_school': [{en:'pen',pl:'długopis'},{en:'pencil',pl:'ołówek'},{en:'book',pl:'książka'},{en:'notebook',pl:'zeszyt'},{en:'desk',pl:'biurko'},{en:'teacher',pl:'nauczyciel'},{en:'student',pl:'uczeń'},{en:'classroom',pl:'sala lekcyjna'},{en:'ruler',pl:'linijka'},{en:'rubber',pl:'gumka do ścierania'},{en:'blackboard',pl:'tablica'},{en:'lesson',pl:'lekcja'},{en:'maths',pl:'matematyka'},{en:'english',pl:'język angielski'},{en:'science',pl:'przyroda'},{en:'history',pl:'historia'},{en:'geography',pl:'geografia'},{en:'art',pl:'plastyka'},{en:'music',pl:'muzyka'},{en:'homework',pl:'praca domowa'}],
+                
+                // PAKIETY ZDAŃ
+                'sentences_daily': [
+                    {en:'where is my notebook',pl:'gdzie jest mój zeszyt'},{en:'i have a red pen',pl:'mam czerwony długopis'},
+                    {en:'she likes her school',pl:'ona lubi swoją szkołę'},{en:'we open the book',pl:'otwieramy książkę'},
+                    {en:'this is my desk',pl:'to jest moje biurko'},{en:'he reads a new book',pl:'on czyta nową książkę'},
+                    {en:'i see the teacher',pl:'widzę nauczyciela'},{en:'they play in the park',pl:'oni bawią się w parku'},
+                    {en:'my friend has a cat',pl:'mój przyjaciel ma kota'},{en:'we love our classroom',pl:'uwielbiamy naszą salę lekcyjną'},
+                    {en:'she goes to school',pl:'ona chodzi do szkoły'},{en:'i eat an apple',pl:'jem jabłko'},
+                    {en:'this water is cold',pl:'ta woda jest zimna'},{en:'he drinks sweet juice',pl:'on pije słodki sok'},
+                    {en:'i do my homework',pl:'robię moją pracę domową'},{en:'we learn english today',pl:'uczymy się dzisiaj angielskiego'},
+                    {en:'she has three pencils',pl:'ona ma trzy ołówki'},{en:'the dog is very big',pl:'pies jest bardzo duży'},
+                    {en:'i like playing games',pl:'lubię grać w gry'},{en:'we have a great time',pl:'mamy świetny czas'}
+                ],
+                'sentences_family': [
+                    {en:'my mother is very kind',pl:'moja mama jest bardzo miła'},{en:'this is my father',pl:'to jest mój ojciec'},
+                    {en:'i have one brother',pl:'mam jednego brata'},{en:'she loves her family',pl:'ona kocha swoją rodzinę'},
+                    {en:'we live in a big house',pl:'mieszkamy w dużym domu'},{en:'my sister has new shoes',pl:'moja siostra ma nowe buty'},
+                    {en:'our dog loves playing',pl:'nasz pies uwielbia zabawę'},{en:'he helps his parents',pl:'on pomaga swoim rodzicom'},
+                    {en:'my grandmother cooks well',pl:'moja babcia dobrze gotuje'},{en:'we eat dinner together',pl:'jemy razem kolację'},
+                    {en:'i visit my friend today',pl:'odwiedzam dzisiaj mojego przyjaciela'},{en:'she has two cute cats',pl:'ona ma dwa urocze koty'},
+                    {en:'this car belongs to my dad',pl:'ten samochód należy do mojego taty'},{en:'we clean our room',pl:'sprzątamy nasz pokój'},
+                    {en:'my grandfather reads news',pl:'mój dziadek czyta wiadomości'},{en:'they go home now',pl:'oni idą teraz do domu'},
+                    {en:'i love my small sister',pl:'kocham moją małą siostrę'},{en:'our house is near the park',pl:'nasz dom jest blisko parku'},
+                    {en:'she helps her brother',pl:'ona pomaga swojemu bratowi'},{en:'we are a happy family',pl:'jesteśmy szczęśliwą rodziną'}
+                ],
+                'sentences_advanced': [
+                    {en:'my mother keeps her data on the computer',pl:'moja mama ma swoje dane w komputerze'},
+                    {en:'technology changes our world fast',pl:'technologia szybko zmienia nasz świat'},
+                    {en:'i use a safe password online',pl:'używam bezpiecznego hasła w sieci'},
+                    {en:'students download useful books',pl:'uczniowie pobierają przydatne książki'},
+                    {en:'she searches for information',pl:'ona szuka informacji'},
+                    {en:'we protect our private files',pl:'chronimy nasze prywatne pliki'},
+                    {en:'he works on a digital device',pl:'on pracuje na urządzeniu cyfrowym'},
+                    {en:'internet connects people everywhere',pl:'internet łączy ludzi wszędzie'},
+                    {en:'i send an email to my teacher',pl:'wysyłam e-mail do mojego nauczyciela'},
+                    {en:'new applications help us learn',pl:'nowe aplikacje pomagają nam się uczyć'},
+                    {en:'this computer is very fast',pl:'ten komputer jest bardzo szybki'},
+                    {en:'she learned programming last year',pl:'ona nauczyła się programowania w zeszłym roku'},
+                    {en:'we share scientific data',pl:'udostępniamy dane naukowe'},
+                    {en:'he forgot his internet password',pl:'on zapomniał swojego hasła do internetu'},
+                    {en:'online safety is very important',pl:'bezpieczeństwo w sieci jest bardzo ważne'},
+                    {en:'they created a useful website',pl:'oni stworzyli przydatną stronę internetową'},
+                    {en:'i charge my phone battery',pl:'ładuję baterię w moim telefonie'},
+                    {en:'the software update is ready',pl:'aktualizacja oprogramowania jest gotowa'},
+                    {en:'she takes photos with her camera',pl:'ona robi zdjęcia swoim aparatem'},
+                    {en:'we enjoy learning technology',pl:'lubimy uczyć się technologii'}
+                ],
+                'sentences_travel': [
+                    {en:'we booked a hotel room online',pl:'zarezerwowaliśmy pokój w hotelu w sieci'},
+                    {en:'the tourist map is helpful',pl:'mapa turystyczna jest pomocna'},
+                    {en:'i bought a ticket to london',pl:'kupiłem bilet do londynu'},
+                    {en:'she travels around the world',pl:'ona podróżuje po całym świecie'},
+                    {en:'our flight was very comfortable',pl:'nasz lot był bardzo wygodny'},
+                    {en:'they visited the ancient museum',pl:'oni odwiedzili starożytne muzeum'},
+                    {en:'he packs his luggage now',pl:'on pakuje teraz swój bagaż'},
+                    {en:'i need my passport today',pl:'potrzebuję dzisiaj mojego paszportu'},
+                    {en:'this city is beautiful in summer',pl:'to miasto jest piękne latem'},
+                    {en:'we love exciting adventures',pl:'uwielbiamy ekscytujące przygody'},
+                    {en:'she takes souvenirs home',pl:'ona zabiera pamiątki do domu'},
+                    {en:'the guide explains history well',pl:'przewodnik dobrze wyjaśnia historię'},
+                    {en:'i enjoy resting on the beach',pl:'lubię wypoczywać na plaży'},
+                    {en:'they reached the airport on time',pl:'dotarli na lotnisko na czas'},
+                    {en:'our vacation was unforgettable',pl:'nasze wakacje były niezapomniane'},
+                    {en:'she learns foreign languages fast',pl:'ona szybko uczy się języków obcych'},
+                    {en:'we change currency at the bank',pl:'wymieniamy walutę w banku'},
+                    {en:'the destination was very popular',pl:'cel podróży był bardzo popularny'},
+                    {en:'i like exploring new places',pl:'lubię odkrywać nowe miejsca'},
+                    {en:'they enjoyed their journey',pl:'oni podobała się ich podróż'}
+                ]}
+            ;
+
+            const selected = packs[packKey];
+            if (!selected) return;
+
+            for (let w of selected) {
+                await window.fb.addDoc(window.fb.collection(db, 'vocabulary'), {
+                    classId: activeClassId,
+                    en: w.en,
+                    pl: w.pl
+                });
+            }
+            closeModal('modal-packs');
+            alert('Dodano pakiet do bazy!');
+            loadTeacherWords(activeClassId);
+        }
+
+        window.openAddWordModal = function() {
+            document.getElementById('edit-word-id').value = '';
+            document.getElementById('word-en').value = '';
+            document.getElementById('word-pl').value = '';
+            document.getElementById('word-modal-title').innerText = 'Dodaj Nową Pozycję';
+            document.getElementById('modal-word').classList.remove('hidden');
+        }
+
+        window.openEditWordModal = function(id, en, pl) {
+            document.getElementById('edit-word-id').value = id;
+            document.getElementById('word-en').value = en;
+            document.getElementById('word-pl').value = pl;
+            document.getElementById('word-modal-title').innerText = 'Edytuj Pozycję';
+            document.getElementById('modal-word').classList.remove('hidden');
+        }
+
+        window.handleSaveWord = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-word-id').value;
+            const en = document.getElementById('word-en').value.trim();
+            const pl = document.getElementById('word-pl').value.trim();
+
+            if (id) {
+                await window.fb.updateDoc(window.fb.doc(db, 'vocabulary', id), { en, pl });
+            } else {
+                await window.fb.addDoc(window.fb.collection(db, 'vocabulary'), {
+                    classId: activeClassId, en, pl
+                });
+            }
+            closeModal('modal-word');
+            loadTeacherWords(activeClassId);
+        }
+
+        window.deleteWord = async function(id) {
+            if (confirm('Czy na pewno chcesz usunąć ten element?')) {
+                await window.fb.deleteDoc(window.fb.doc(db, 'vocabulary', id));
+                loadTeacherWords(activeClassId);
+            }
+        }
+
+        // PANEL UCZNIA
+        async function showStudentDashboard() {
+            showSection('student');
+            document.getElementById('nav-auth-buttons').classList.add('hidden');
+            document.getElementById('nav-user-info').classList.remove('hidden');
+            document.getElementById('user-display-name').innerText = `Uczeń: ${currentUser.firstName}`;
+            document.getElementById('student-name-display').innerText = currentUser.firstName;
+            document.getElementById('student-xp-display').innerText = `${currentUser.xp || 0} XP`;
+
+            const today = new Date().toDateString();
+            if (currentUser.lastLessonDate !== today) {
+                currentUser.dailyLessonsCount = 0;
+                currentUser.lastLessonDate = today;
+                await window.fb.updateDoc(window.fb.doc(db, 'students', currentUser.id), { dailyLessonsCount: 0, lastLessonDate: today });
+            }
+
+            let streakDays = currentUser.streakDays || 0;
+            const lastActive = currentUser.lastActiveDate || '';
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+            if (lastActive && lastActive !== today && lastActive !== yesterday) {
+                streakDays = 0;
+                currentUser.streakClaimed = false;
+                await window.fb.updateDoc(window.fb.doc(db, 'students', currentUser.id), { streakDays: 0, streakClaimed: false });
+            }
+
+            currentUser.streakDays = streakDays;
+            document.getElementById('streak-days-count').innerText = streakDays;
+            document.getElementById('streak-progress-bar').style.width = `${Math.min(100, (streakDays / 7) * 100)}%`;
+
+            const claimBtn = document.getElementById('claim-streak-btn');
+            if (streakDays >= 7 && !currentUser.streakClaimed) {
+                claimBtn.disabled = false;
+                claimBtn.className = "w-full py-2.5 bg-white text-lime-700 font-extrabold rounded-xl text-sm shadow-md hover:bg-lime-50 transition cursor-pointer";
+            } else {
+                claimBtn.disabled = true;
+                claimBtn.className = "w-full py-2.5 bg-white/40 text-white font-extrabold rounded-xl text-sm cursor-not-allowed transition";
+            }
+
+            const left = 5 - (currentUser.dailyLessonsCount || 0);
+            const limitInfo = document.getElementById('lesson-limit-info');
+            const startBtn = document.getElementById('start-lesson-btn');
+            if (left <= 0) {
+                limitInfo.innerText = 'Wykorzystano dzisiejszy limit 5 lekcji!';
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                limitInfo.innerText = `Pozostałe lekcje na dziś: ${left} / 5`;
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            loadStudentLeaderboard();
+        }
+
+        window.claimStreakReward = async function() {
+            playSound('success');
+            currentUser.xp = (currentUser.xp || 0) + 300;
+            currentUser.streakClaimed = true;
+            currentUser.streakDays = 0;
+            await window.fb.updateDoc(window.fb.doc(db, 'students', currentUser.id), {
+                xp: currentUser.xp,
+                streakClaimed: true,
+                streakDays: 0
+            });
+            if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+            alert('Gratulacje! Otrzymano bonus 300 XP za 7 dni nauki!');
+            showStudentDashboard();
+        }
+
+        async function loadStudentLeaderboard() {
+            const container = document.getElementById('student-leaderboard-list');
+            container.innerHTML = '<p class="text-slate-500">Ładowanie rankingu...</p>';
+
+            const q = window.fb.query(window.fb.collection(db, 'students'), window.fb.where('classId', '==', currentUser.classId));
+            const snap = await window.fb.getDocs(q);
+            let students = [];
+            snap.forEach(d => students.push(d.data()));
+            students.sort((a,b) => (b.xp || 0) - (a.xp || 0));
+
+            container.innerHTML = '';
+            students.forEach((s, idx) => {
+                const isMe = s.login === currentUser.login;
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3.5 rounded-2xl border ${isMe ? 'bg-lime-50/80 border-lime-300' : 'bg-slate-50 border-slate-200/80'} shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <span class="font-black text-slate-400 w-6">#${idx+1}</span>
+                            <span class="font-bold text-slate-800">${s.firstName} ${isMe ? '(Ty)' : ''}</span>
+                        </div>
+                        <span class="font-extrabold text-lime-600">${s.xp || 0} XP</span>
+                    </div>
+                `;
+            });
+        }
+
+        // LEKCJE & GENEROWANIE 40 PYTAŃ
+        window.startStudentLesson = async function() {
+            const wordsSnap = await window.fb.getDocs(window.fb.query(window.fb.collection(db, 'vocabulary'), window.fb.where('classId', '==', currentUser.classId)));
+            if (wordsSnap.empty) {
+                alert('Nauczyciel nie dodał jeszcze słówek ani zdań dla tej klasy!');
+                return;
+            }
+
+            let allWords = [];
+            wordsSnap.forEach(d => allWords.push({ id: d.id, ...d.data() }));
+
+            let lessonWords = [];
+            for (let i = 0; i < 40; i++) {
+                lessonWords.push(allWords[Math.floor(Math.random() * allWords.length)]);
+            }
+
+            lessonData = {
+                words: lessonWords,
+                currentIdx: 0,
+                waitingForRetry: false,
+                currentQuestion: null,
+                allPool: allWords,
+                sentenceWords: [],
+                selectedSentenceWords: []
+            };
+
+            showSection('lesson');
+            renderLessonStep();
+        }
+
+        function renderLessonStep() {
+            const area = document.getElementById('lesson-content-area');
+            const progress = document.getElementById('lesson-progress-text');
+            const qIndex = lessonData.currentIdx;
+
+            if (qIndex >= 40) {
+                finishLesson();
+                return;
+            }
+
+            const w = lessonData.words[qIndex];
+            lessonData.currentQuestion = w;
+
+            if (qIndex < 10) {
+                progress.innerText = `Pytanie ${qIndex + 1} / 40 (Wybór EN)`;
+                let wrong = lessonData.allPool.filter(x => x.en !== w.en).map(x => x.en);
+                wrong = wrong.sort(() => 0.5 - Math.random()).slice(0, 3);
+                let options = [...wrong, w.en].sort(() => 0.5 - Math.random());
+
+                area.innerHTML = `
+                    <div class="text-center animate-pop-fast">
+                        <div class="text-xl font-bold text-slate-700 mb-2">Wybierz angielskie tłumaczenie:</div>
+                        <div class="text-3xl font-black text-slate-900 mb-6">${w.pl}</div>
+                        <div id="abcd-container" class="grid grid-cols-2 gap-4 mb-4">
+                            ${options.map(opt => `<button onclick="checkChoiceAnswer(this, '${opt}', '${w.en}', true)" class="p-4 bg-slate-50 hover:bg-lime-50 border-2 border-slate-200 font-bold text-lg rounded-2xl transition flex items-center justify-between px-6"><span>${opt}</span><span onclick="event.stopPropagation(); speakEN('${opt}')" class="text-sm p-1.5 bg-white rounded-lg shadow-sm">🔊</span></button>`).join('')}
+                        </div>
+                        <div id="error-feedback" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl text-sm"></div>
+                        <button id="next-btn" class="hidden w-full py-4 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg rounded-2xl shadow-lg transition" onclick="proceedNext()">Dalej (Enter) →</button>
+                    </div>
+                `;
+            } else if (qIndex < 20) {
+                progress.innerText = `Pytanie ${qIndex + 1} / 40 (Wybór PL)`;
+                let wrong = lessonData.allPool.filter(x => x.pl !== w.pl).map(x => x.pl);
+                wrong = wrong.sort(() => 0.5 - Math.random()).slice(0, 3);
+                let options = [...wrong, w.pl].sort(() => 0.5 - Math.random());
+
+                area.innerHTML = `
+                    <div class="text-center animate-pop-fast">
+                        <div class="text-xl font-bold text-slate-700 mb-2">Wybierz polskie tłumaczenie:</div>
+                        <div class="flex items-center justify-center space-x-3 mb-6">
+                            <span class="text-3xl font-black text-slate-900">${w.en}</span>
+                            <button onclick="speakEN('${w.en}')" class="p-2 bg-lime-100 text-lime-800 rounded-xl text-lg hover:bg-lime-200 transition shadow-sm">🔊</button>
+                        </div>
+                        <div id="abcd-container" class="grid grid-cols-2 gap-4 mb-4">
+                            ${options.map(opt => `<button onclick="checkChoiceAnswer(this, '${opt}', '${w.pl}', false)" class="p-4 bg-slate-50 hover:bg-lime-50 border-2 border-slate-200 font-bold text-lg rounded-2xl transition">${opt}</button>`).join('')}
+                        </div>
+                        <div id="error-feedback" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl text-sm"></div>
+                        <button id="next-btn" class="hidden w-full py-4 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg rounded-2xl shadow-lg transition" onclick="proceedNext()">Dalej (Enter) →</button>
+                    </div>
+                `;
+            } else if (qIndex < 25) {
+                progress.innerText = `Pytanie ${qIndex + 1} / 40 (Wpisz EN)`;
+                area.innerHTML = `
+                    <div class="text-center animate-pop-fast">
+                        <h3 class="text-lg font-bold mb-2 text-slate-600">Wpisz po angielsku:</h3>
+                        <div class="text-3xl font-black text-slate-900 mb-6">${w.pl}</div>
+                        <input type="text" id="lesson-answer-input" onkeydown="handleInputEnter(event, '${w.en}')" placeholder="Wpisz i naciśnij Enter..." class="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 text-center text-xl font-bold focus:ring-2 focus:ring-lime-500 mb-4 outline-none transition shadow-inner" autocomplete="off">
+                        <div id="error-feedback" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl text-sm"></div>
+                        <button id="action-btn" onclick="checkTypedAnswer('${w.en}')" class="w-full py-4 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg rounded-2xl shadow-lg transition">Sprawdź (Enter)</button>
+                    </div>
+                `;
+                setTimeout(() => document.getElementById('lesson-answer-input')?.focus(), 50);
+            } else if (qIndex < 30) {
+                progress.innerText = `Pytanie ${qIndex + 1} / 40 (Wpisz PL)`;
+                area.innerHTML = `
+                    <div class="text-center animate-pop-fast">
+                        <h3 class="text-lg font-bold mb-2 text-slate-600">Wpisz po polsku:</h3>
+                        <div class="flex items-center justify-center space-x-3 mb-6">
+                            <span class="text-3xl font-black text-slate-900">${w.en}</span>
+                            <button onclick="speakEN('${w.en}')" class="p-2 bg-lime-100 text-lime-800 rounded-xl text-lg hover:bg-lime-200 transition shadow-sm">🔊</button>
+                        </div>
+                        <input type="text" id="lesson-answer-input" onkeydown="handleInputEnter(event, '${w.pl}')" placeholder="Wpisz i naciśnij Enter..." class="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 text-center text-xl font-bold focus:ring-2 focus:ring-lime-500 mb-4 outline-none transition shadow-inner" autocomplete="off">
+                        <div id="error-feedback" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl text-sm"></div>
+                        <button id="action-btn" onclick="checkTypedAnswer('${w.pl}')" class="w-full py-4 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg rounded-2xl shadow-lg transition">Sprawdź (Enter)</button>
+                    </div>
+                `;
+                setTimeout(() => document.getElementById('lesson-answer-input')?.focus(), 50);
+            } else {
+                // UKŁADANIE ZDAŃ ZE ZBIEŻNOŚCIĄ SŁÓWEK / ZDAŃ W BAZIE
+                progress.innerText = `Pytanie ${qIndex + 1} / 40 (Ułóż zdanie)`;
+                
+                let targetEn = w.en;
+                let targetPl = w.pl;
+
+                // Jeśli w bazie jest samo słówko, użyj poprawnego gramatycznie szablonu
+                if (!w.en.includes(' ')) {
+                    targetEn = `this is my ${w.en}`;
+                    targetPl = `to jest mój/moja ${w.pl}`;
+                }
+
+                let wordsArray = targetEn.split(' ');
+                const extraWords = ['a', 'the', 'my', 'your', 'very'];
+                wordsArray.push(extraWords[Math.floor(Math.random() * extraWords.length)]);
+                wordsArray = wordsArray.sort(() => 0.5 - Math.random());
+
+                lessonData.sentenceTarget = targetEn.toLowerCase();
+                lessonData.selectedSentenceWords = [];
+
+                area.innerHTML = `
+                    <div class="text-center animate-pop-fast">
+                        <h3 class="text-base font-bold mb-1 text-slate-500">Ułóż zdanie po angielsku:</h3>
+                        <div class="flex items-center justify-center space-x-3 mb-6">
+                            <span class="text-2xl font-black text-slate-900">"${targetPl}"</span>
+                            <button onclick="speakEN('${targetEn}')" class="p-2 bg-lime-100 text-lime-800 rounded-xl text-base hover:bg-lime-200 transition shadow-sm">🔊</button>
+                        </div>
+
+                        <div id="sentence-dropzone" class="min-h-[70px] p-3 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-wrap items-center justify-center gap-2 mb-6">
+                            <span class="text-slate-400 text-sm italic pointer-events-none">Klikaj kafelki poniżej, aby ułożyć zdanie...</span>
+                        </div>
+
+                        <div id="sentence-pool" class="flex flex-wrap justify-center gap-2 mb-6">
+                            ${wordsArray.map((word) => `<button onclick="pickSentenceWord(this, '${word}')" class="px-4 py-2.5 bg-white border-2 border-slate-200 shadow-sm font-bold text-slate-800 rounded-xl hover:border-lime-500 hover:bg-lime-50 transition text-lg"><span>${word}</span></button>`).join('')}
+                        </div>
+
+                        <div id="error-feedback" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl text-sm"></div>
+                        <button id="sentence-btn" onclick="checkSentenceAnswer()" class="w-full py-4 bg-lime-500 hover:bg-lime-600 text-white font-bold text-lg rounded-2xl shadow-lg transition">Sprawdź Zdanie (Enter)</button>
+                    </div>
+                `;
+            }
+        }
+
+        // WSPARCIE KLAWISZA ENTER W INPUTACH
+        window.handleInputEnter = function(e, target) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkTypedAnswer(target);
+            }
+        }
+
+        // GLOBALNA OBSŁUGA KLAWISZA ENTER
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const nextBtn = document.getElementById('next-btn');
+                if (nextBtn && !nextBtn.classList.contains('hidden')) {
+                    proceedNext();
+                }
+            }
+        });
+
+        window.pickSentenceWord = function(btnElement, word) {
+            playSound('click');
+            speakEN(word, 1.2);
+
+            const dropzone = document.getElementById('sentence-dropzone');
+            const placeholder = dropzone.querySelector('span.italic');
+            if (placeholder) placeholder.remove();
+
+            lessonData.selectedSentenceWords.push(word);
+            btnElement.style.visibility = 'hidden';
+
+            const tile = document.createElement('button');
+            tile.className = "px-4 py-2 bg-lime-500 text-white font-bold rounded-xl text-lg shadow-sm animate-pop-fast flex items-center gap-1";
+            tile.innerHTML = `<span>${word}</span>`;
+            tile.onclick = function() {
+                playSound('click');
+                tile.remove();
+                btnElement.style.visibility = 'visible';
+                const index = lessonData.selectedSentenceWords.indexOf(word);
+                if (index > -1) lessonData.selectedSentenceWords.splice(index, 1);
+            };
+            dropzone.appendChild(tile);
+        }
+
+        window.checkSentenceAnswer = function() {
+            const feedback = document.getElementById('error-feedback');
+            const btn = document.getElementById('sentence-btn');
+            const currentString = lessonData.selectedSentenceWords.join(' ').toLowerCase();
+
+            if (lessonData.waitingForRetry) {
+                lessonData.waitingForRetry = false;
+                lessonData.currentIdx++;
+                renderLessonStep();
+                return;
+            }
+
+            if (currentString === lessonData.sentenceTarget) {
+                playSound('success');
+                processAnswerRecord(true, lessonData.currentQuestion.id);
+                lessonData.currentIdx++;
+                renderLessonStep();
+            } else {
+                playSound('error');
+                processAnswerRecord(false, lessonData.currentQuestion.id);
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = `❌ Błąd! Poprawne zdanie to: <b>"${lessonData.sentenceTarget}"</b>`;
+                btn.innerText = 'Dalej (Enter) →';
+                btn.className = "w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg rounded-2xl shadow-lg transition";
+                lessonData.waitingForRetry = true;
+            }
+        }
+
+        window.checkChoiceAnswer = function(btnElement, selected, correctValue, isEN) {
+            const feedback = document.getElementById('error-feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const allBtns = document.querySelectorAll('#abcd-container button');
+
+            if (selected === correctValue) {
+                playSound('success');
+                btnElement.className = "p-4 bg-lime-500 text-white font-bold text-lg rounded-2xl shadow-md flex items-center justify-between px-6";
+                processAnswerRecord(true, lessonData.currentQuestion.id);
+                allBtns.forEach(b => b.disabled = true);
+                setTimeout(() => {
+                    lessonData.currentIdx++;
+                    renderLessonStep();
+                }, 400);
+            } else {
+                playSound('error');
+                processAnswerRecord(false, lessonData.currentQuestion.id);
+                btnElement.className = "p-4 bg-red-100 text-red-700 border-2 border-red-500 font-bold text-lg rounded-2xl flex items-center justify-between px-6";
+                allBtns.forEach(b => {
+                    if (b.innerText.includes(correctValue)) b.className = "p-4 bg-lime-100 border-2 border-lime-500 font-bold text-lg rounded-2xl flex items-center justify-between px-6";
+                    b.disabled = true;
+                });
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = `❌ Błąd! Prawidłowa odpowiedź to: <b>${correctValue}</b>`;
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        window.checkTypedAnswer = function(correctTarget) {
+            const input = document.getElementById('lesson-answer-input');
+            const feedback = document.getElementById('error-feedback');
+            const btn = document.getElementById('action-btn');
+            const val = input ? input.value.trim().toLowerCase() : '';
+
+            if (lessonData.waitingForRetry) {
+                lessonData.waitingForRetry = false;
+                lessonData.currentIdx++;
+                renderLessonStep();
+                return;
+            }
+
+            if (val === correctTarget.toLowerCase()) {
+                playSound('success');
+                processAnswerRecord(true, lessonData.currentQuestion.id);
+                lessonData.currentIdx++;
+                renderLessonStep();
+            } else {
+                playSound('error');
+                processAnswerRecord(false, lessonData.currentQuestion.id);
+                if (input) input.classList.add('border-red-500', 'bg-red-50');
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = `❌ Błędna odpowiedź! Poprawnie to: <b>${correctTarget}</b>`;
+                btn.innerText = 'Dalej (Enter) →';
+                btn.className = "w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg rounded-2xl shadow-lg transition";
+                lessonData.waitingForRetry = true;
+            }
+        }
+
+        window.proceedNext = function() {
+            playSound('click');
+            lessonData.currentIdx++;
+            renderLessonStep();
+        }
+
+        function processAnswerRecord(isCorrect, wordId) {
+            if (!currentUser.wordsProgress) currentUser.wordsProgress = {};
+            if (!currentUser.wordsProgress[wordId]) currentUser.wordsProgress[wordId] = { correctStreak: 0, repetitions: 0 };
+            
+            currentUser.wordsProgress[wordId].repetitions++;
+            if (isCorrect) {
+                currentUser.wordsProgress[wordId].correctStreak++;
+                currentUser.xp = (currentUser.xp || 0) + 20;
+            } else {
+                currentUser.wordsProgress[wordId].correctStreak = 0;
+                currentUser.xp = (currentUser.xp || 0) + 4;
+            }
+        }
+
+        async function finishLesson() {
+            currentUser.dailyLessonsCount = (currentUser.dailyLessonsCount || 0) + 1;
+            
+            const today = new Date().toDateString();
+            if (currentUser.lastActiveDate !== today) {
+                currentUser.streakDays = (currentUser.streakDays || 0) + 1;
+                currentUser.lastActiveDate = today;
+            }
+
+            await window.fb.updateDoc(window.fb.doc(db, 'students', currentUser.id), {
+                xp: currentUser.xp,
+                wordsProgress: currentUser.wordsProgress,
+                dailyLessonsCount: currentUser.dailyLessonsCount,
+                lastLessonDate: currentUser.lastLessonDate,
+                streakDays: currentUser.streakDays,
+                lastActiveDate: currentUser.lastActiveDate
+            });
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+            }
+
+            const area = document.getElementById('lesson-content-area');
+            document.getElementById('lesson-progress-text').innerText = 'Sukces!';
+            area.innerHTML = `
+                <div class="text-center py-8">
+                    <h3 class="text-3xl font-black text-slate-900 mb-3">Lekcja ukończona! 🎉</h3>
+                    <p class="text-slate-600 mb-8 font-medium">Ukończono 40 zadań! Punkty XP zostały zapisane w chmurze.</p>
+                    <button onclick="playSound('click'); showStudentDashboard()" class="px-8 py-4 bg-gradient-to-r from-lime-500 to-emerald-500 text-white font-extrabold rounded-2xl shadow-xl transition">Powrót do panelu</button>
+                </div>
+            `;
+        }
+
+        window.quitLesson = function() {
+            if (confirm('Czy na pewno chcesz przerwać lekcję? Postępy z tej sesji nie zostaną zapisane.')) {
+                showStudentDashboard();
+            }
+        }
+    </script>
+</body>
+</html>
